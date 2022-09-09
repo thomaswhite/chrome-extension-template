@@ -1,7 +1,9 @@
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+//const NpmInstallPlugin = require("npm-install-webpack-plugin");
 
 module.exports = {
+	devtool: 'hidden-source-map', // 'hidden-nosources-source-map', //'hidden-source-map', // source-map, 'source-map', // 
 	entry: {
 	  "background": ["./src/background/index.js"],
 	  "content_scripts": ["./src/content_scripts/index.js"],
@@ -17,7 +19,7 @@ module.exports = {
 	module: {
 		rules: [
 			{
-				test: /\.scss$/,
+				test: /\.s[ac]ss$/i,
 				use: [
 					{
 						loader: "file-loader",
@@ -35,7 +37,12 @@ module.exports = {
 						loader: "postcss-loader"
 					},
 					{
-						loader: "sass-loader"
+						loader: "sass-loader",
+						options: {
+              // Prefer `dart-sass`
+							implementation: require.resolve("sass"),
+							sourceMap: true,
+            },
 					}
 				]
 			},
@@ -45,22 +52,30 @@ module.exports = {
 				use: {
 						loader: "babel-loader",
 						options: {
-						presets: ["@babel/preset-env"],
-						plugins: ["@babel/plugin-transform-runtime"]
-					}
+							presets: ["@babel/preset-env"],
+							plugins: ["@babel/plugin-transform-runtime"]
+						}
 				}
-			}
+			},
+			{
+        test: /\.js$/,
+        enforce: "pre",
+        use: ["source-map-loader"],
+      },
 		]
 	},
-  	plugins: [
+	plugins: [
+		// https://www.npmjs.com/package/npm-install-webpack-plugin
+		//new NpmInstallPlugin({dev: true, peerDependencies: true, quiet: false, npm: 'pnpm'		}),
+		// new webpack.SourceMapDevToolPlugin({			 filename: '[name].map',		}),
 		new CopyWebpackPlugin({
-		patterns: [
-			{ from: "./src/manifest.json" },
-			{ from: "./src/options/options.html" },
-			{ from: "./src/popup/popup.html" },
-			{ from: "./src/newtab/newtab.html" },
-			{ from: "icons/*", to: path.resolve(__dirname, "dist"), context: "src/" }
-		]
+			patterns: [
+				{ from: "./src/manifest.json" },
+				{ from: "./src/options/options.html" },
+				{ from: "./src/popup/popup.html" },
+				{ from: "./src/newtab/newtab.html" },
+				{ from: "icons/*", to: path.resolve(__dirname, "dist"), context: "src/" }
+			]
 		}),
 	]
 };
